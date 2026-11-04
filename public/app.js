@@ -47,6 +47,7 @@ function logout() {
 function showAuth() {
   $("#who").innerHTML = "";
   $("#app").innerHTML = `
+    <div class="hero"><h1>Trade skills, not money.</h1><p class="muted">Teach what you know, learn what you want, and meet people on campus.</p></div>
     <div class="card auth">
       <h3>${mode === "login" ? "Log in" : "Create your account"}</h3>
       <p class="muted">${mode === "login" ? "Welcome back. Pick up your swaps." : "Offer a skill, ask for one, get matched."}</p>
@@ -76,16 +77,28 @@ async function submitAuth() {
   }
 }
 
+const ICONS = {
+  matches: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 9h6M9 13h4"/></svg>`,
+  requests: `<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>`,
+  skills: `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,
+};
+
+/** Draws the app shell (top bar + bottom tab bar) and loads the current tab. */
 function showApp() {
   chatId = null;
-  $("#who").innerHTML = `${esc(me.name)} <button onclick="logout()">Log out</button>`;
+  $("#who").innerHTML = `<span>${esc(me.name)}</span><button onclick="logout()">Log out</button>`;
   const tabs = [
     ["matches", "Discover"],
-    ["skills", "Profile"],
     ["requests", "Matches"],
+    ["skills", "Profile"],
   ];
-  $("#app").innerHTML =
-    `<nav>${tabs.map(([k, l]) => `<button class="${tab === k ? "on" : ""}" onclick="tab='${k}';showApp()">${l}</button>`).join("")}</nav><div id="view"></div>`;
+  $("#app").innerHTML = `<div id="view"></div>
+    <nav class="tabbar">${tabs
+      .map(
+        ([key, label]) =>
+          `<button class="${tab === key ? "on" : ""}" onclick="tab='${key}';showApp()">${ICONS[key]}<span>${label}</span></button>`,
+      )
+      .join("")}</nav>`;
   ({ matches: loadMatches, skills: loadSkills, requests: loadRequests })[tab]();
 }
 
@@ -126,7 +139,7 @@ function renderDeck() {
           <h2>${esc(m.name)}</h2>
           <p class="muted">${esc(m.bio || "No bio yet")}</p>
           ${m.reviews ? `<p>★ ${m.rating.toFixed(1)} from ${m.reviews} review${m.reviews > 1 ? "s" : ""}</p>` : ""}
-          ${m.mutual ? '<span class="badge">Two-way swap</span>' : ""}
+          ${m.mutual ? '<span class="badge">Two-way swap</span>' : m.score ? '<span class="badge soft">Skills overlap</span>' : '<span class="badge soft">New to explore</span>'}
           <div class="skill-label">Can teach</div><div>${chips(m.offers, m.theyTeach, "")}</div>
           <div class="skill-label">Wants to learn</div><div>${chips(m.wants, m.theyLearn, "want")}</div>
         </div>
@@ -180,7 +193,7 @@ async function swipe(direction) {
     if (res.matched) showMatch(m, res.requestId);
     else setTimeout(renderDeck, 250);
   } catch (e) {
-    alert(e.message);
+    toast(e.message);
     renderDeck();
   }
 }
@@ -211,6 +224,7 @@ async function loadSkills() {
       )
       .join("") || '<span class="muted">Nothing added yet</span>';
   $("#view").innerHTML = `
+    <div class="card profile-head"><span class="avatar big">${initials(user.name)}</span><div><h2>${esc(user.name)}</h2><div class="muted">${esc(user.email)}</div></div></div>
     <div class="card"><h3>Your reputation</h3>${
       rep.count
         ? `<div>${stars(rep.avg)} ${rep.avg.toFixed(1)} from ${rep.count} review${rep.count > 1 ? "s" : ""}</div>` +
@@ -234,7 +248,7 @@ async function addSkill(type) {
     await api("/skills", "POST", { skill: $("#" + type).value, type });
     loadSkills();
   } catch (e) {
-    alert(e.message);
+    toast(e.message);
   }
 }
 async function removeSkill(id) {
@@ -264,7 +278,8 @@ async function loadRequests() {
           return `<div class="card">
           <div class="person"><span class="avatar">${initials(other)}</span><h3>${esc(other)}</h3>
             <span class="status ${r.status}">${done ? "swap done" : "matched"}</span></div>
-          <div class="muted">You teach: ${esc(iTeach || "anything")}. They teach: ${esc(theyTeach || "anything")}.</div>
+          <p class="preview">${esc(r.last_message || "No messages yet. Say hi!")}</p>
+          <div class="muted">You teach: ${esc(iTeach || "to be agreed")}. They teach: ${esc(theyTeach || "to be agreed")}.</div>
           <div class="row" style="margin-top:10px">
             <button onclick="openChat(${r.id})">Message</button>
             ${done ? (r.reviewed ? '<span class="muted">You reviewed this swap</span>' : "") : `<button class="ghost" onclick="setStatus(${r.id},'completed')">Mark swap as done</button>`}
@@ -292,7 +307,7 @@ async function submitReview(id) {
     });
     loadRequests();
   } catch (e) {
-    alert(e.message);
+    toast(e.message);
   }
 }
 function connectSocket() {
@@ -318,7 +333,7 @@ async function openChat(id) {
     msgs.forEach(addMsg);
     $("#chatMsg").focus();
   } catch (e) {
-    alert(e.message);
+    toast(e.message);
   }
 }
 function addMsg(m) {
@@ -347,7 +362,7 @@ async function setStatus(id, status) {
     await api("/requests/" + id, "PATCH", { status });
     loadRequests();
   } catch (e) {
-    alert(e.message);
+    toast(e.message);
   }
 }
 
@@ -361,3 +376,13 @@ async function init() {
   }
 }
 init();
+
+/** Small message that pops up at the bottom and disappears by itself. */
+function toast(message) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.setAttribute("role", "status");
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}

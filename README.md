@@ -33,3 +33,7 @@ Demo logins (password demo123): asha@demo.com, rohan@demo.com, meera@demo.com, k
 - When two students both swipe right, it is a match and a chat opens in the **Matches** tab.
 - Skills that overlap with yours are highlighted on the card.
 - Demo students (@demo.com) always swipe right back so you can see the match screen. Turn this off in server/routes/swipes.js.
+
+## Demo students
+24 demo students (password demo123, emails like ananya@demo.com) are added automatically on start-up.
+Students that already exist are skipped, so your own data is never overwritten. The list is in server/demoData.js.

@@ -28,7 +28,8 @@ router.get("/requests", auth, (req, res) => {
   const rows = db
     .prepare(
       `SELECT r.*, s.name AS sender_name, v.name AS receiver_name,
-              (SELECT COUNT(*) FROM reviews rv WHERE rv.request_id = r.id AND rv.reviewer_id = ?) AS reviewed
+              (SELECT COUNT(*) FROM reviews rv WHERE rv.request_id = r.id AND rv.reviewer_id = ?) AS reviewed,
+ (SELECT content FROM messages WHERE request_id = r.id ORDER BY id DESC LIMIT 1) AS last_message
        FROM swap_requests r
        JOIN users s ON s.id = r.sender_id
        JOIN users v ON v.id = r.receiver_id

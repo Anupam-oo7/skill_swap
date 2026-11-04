@@ -450,3 +450,194 @@ nav button.on {
   background: var(--amber);
   color: var(--amber-ink);
 }
+
+/* ---------- App shell: phone-style column with a bottom tab bar ---------- */
+main {
+  max-width: 600px;
+  padding-bottom: 110px;
+}
+.tabbar {
+  position: fixed;
+  z-index: 6;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border: 0;
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -4px 16px rgba(20, 38, 43, 0.06);
+}
+.tabbar button {
+  flex: 1;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.tabbar button:hover {
+  background: var(--page);
+  color: var(--ink);
+}
+.tabbar button.on {
+  background: var(--teal-tint);
+  color: var(--teal);
+}
+.tabbar svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#view {
+  animation: rise 0.25s ease-out;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Landing, profile header, match previews, toast ---------- */
+.hero {
+  margin-top: 28px;
+  text-align: center;
+}
+.hero h1 {
+  margin: 0 0 6px;
+  font:
+    700 2rem Georgia,
+    serif;
+  color: var(--teal-dark);
+}
+.hero + .auth {
+  margin-top: 18px;
+}
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile-head h2 {
+  margin: 0;
+  font:
+    700 1.4rem Georgia,
+    serif;
+}
+.preview {
+  margin: 4px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+.badge.soft {
+  background: var(--teal-tint);
+  color: var(--teal-dark);
+}
+.toast {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+@media (prefers-reduced-motion: reduce) {
+  #view {
+    animation: none;
+  }
+}
+
+/* ---------- Wide-screen layout and final polish ---------- */
+body {
+  background:
+    radial-gradient(circle at 8% 18%, rgba(11, 110, 110, 0.16) 0, transparent 38%),
+    radial-gradient(circle at 92% 72%, rgba(242, 169, 59, 0.22) 0, transparent 36%), var(--page);
+  background-attachment: fixed;
+}
+main {
+  max-width: 1000px;
+}
+.topbar {
+  padding-inline: max(20px, calc((100% - 1000px) / 2 + 20px));
+}
+
+/* Cards flow into 2 columns on desktop and 1 on phones, with no gaps */
+#view {
+  display: block;
+  columns: 2 320px;
+  column-gap: 16px;
+}
+#view > .card {
+  break-inside: avoid;
+}
+#view > .deck,
+#view > .empty,
+#view > .its-a-match,
+#view > .card:has(#chat) {
+  column-span: all;
+}
+#view > .card:has(#chat) {
+  max-width: 720px;
+  margin: 0 auto 14px;
+}
+
+/* Floating, centred tab bar */
+.tabbar {
+  left: 50%;
+  right: auto;
+  width: min(100%, 480px);
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+}
+
+/* Login */
+.auth {
+  box-shadow: 0 10px 30px rgba(20, 38, 43, 0.1);
+}
+@media (min-width: 900px) {
+  .hero {
+    margin-top: 60px;
+  }
+  .hero h1 {
+    font-size: 2.7rem;
+  }
+  .hero .muted {
+    font-size: 1.05rem;
+  }
+}
+
+/* Small fixes */
+.swipe-card .avatar {
+  margin: 0 auto;
+}
+.status {
+  text-transform: none;
+}
+.status::first-letter {
+  text-transform: uppercase;
+}
+.card > h3 {
+  margin-bottom: 8px;
+}
